@@ -7,7 +7,7 @@ const cors = require('cors')
 const app = express();
 const PORT = 9000;
 
-app.use(cors())
+app.use(cors({origin: '*'}))
 app.use(bodyParser.json());
 
 app.post('/translate', async (req, res) => {

@@ -1,7 +1,5 @@
 const axios = require('axios').default;
 const { random } = require('lodash');
-const fs = require('fs');
-
 
 const DEEPL_BASE_URL = 'https://www2.deepl.com/jsonrpc';
 const headers = {
@@ -41,11 +39,12 @@ async function translate(
   targetLang = 'KO',
   numberAlternative = 0,
   printResult = false,
-  delay = 0
 ) {
   const iCount = getICount(text);
   const id = getRandomNumber();
+
   numberAlternative = Math.max(Math.min(3, numberAlternative), 0);
+
   const postData = {
     jsonrpc: '2.0',
     method: 'LMT_handle_texts',
@@ -60,60 +59,38 @@ async function translate(
       timestamp: getTimestamp(iCount),
     },
   };
+
   let postDataStr = JSON.stringify(postData);
+
   if ((id + 5) % 29 === 0 || (id + 3) % 13 === 0) {
     postDataStr = postDataStr.replace('"method":"', '"method" : "');
   } else {
     postDataStr = postDataStr.replace('"method":"', '"method": "');
   }
 
-  console.log('=== Request Data ===');
-  console.log(JSON.stringify(postData, null, 2));
-  console.log('====================');
-
-
   try {
-    await new Promise(resolve => setTimeout(resolve, delay));
     const response = await axios.post(DEEPL_BASE_URL, postDataStr, {
       headers: headers,
     });
+
     if (response.status === 429) {
       throw new Error(
         `Too many requests, your IP has been blocked by DeepL temporarily, please don't request it frequently in a short time.`
       );
     }
+
     if (response.status !== 200) {
       console.error('Error', response.status);
       return;
     }
-    const result = response.data.result.texts[0];
 
-    console.log('=== Response Data ===');
-    console.log(JSON.stringify(result, null, 2));
-    console.log('=====================');
-
+    const result = response.data.result.texts[0]
     if (printResult) {
       console.log(result);
     }
     return result;
-
   } catch (err) {
-    if (err.response && err.response.status === 429) {
-      const errorCondition = {
-        text,
-        sourceLang,
-        targetLang,
-        numberAlternative,
-        delay,
-        timestamp: Date.now(),
-      };
-      fs.appendFileSync('error_conditions.json', JSON.stringify(errorCondition) + '\n');
-      const newDelay = delay + 1000;
-      console.log(`Retrying with delay: ${newDelay}ms`);
-      return translate(text, sourceLang, targetLang, numberAlternative, printResult, newDelay);
-    } else {
-      console.error(err.message);
-    }
+    console.error(err.message);
   }
 }
 
