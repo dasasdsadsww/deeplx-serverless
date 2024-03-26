@@ -3,7 +3,6 @@ const bodyParser = require('body-parser');
 const { translate } = require('./translate');
 const cors = require('cors');
 const fs = require('fs');
-
 const app = express();
 const PORT = 7860;
 
@@ -18,7 +17,12 @@ if (fs.existsSync('delay.txt')) {
   delay = parseInt(fs.readFileSync('delay.txt', 'utf8'));
 }
 
+console.log('File system loaded')
+
 app.post('/translate', async (req, res) => {
+
+  console.log('Translate start')
+
   const { text, source_lang, target_lang } = req.body;
 
   try {
@@ -47,6 +51,10 @@ app.post('/translate', async (req, res) => {
     }
     res.status(500).json({ error: 'Translation failed' });
   }
+});
+
+app.get('/', (req, res) => {
+  res.send('서버가 구동되었습니다.');
 });
 
 app.listen(PORT, () => {
