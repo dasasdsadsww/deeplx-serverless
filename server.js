@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { translate } = require('./translate');
 const cors = require('express')
+const cors = require('cors')
 
 const app = express();
 const PORT = 9000;
